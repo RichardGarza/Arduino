@@ -1,14 +1,30 @@
-
 // First I define the i/o pin numbers for the button and the LED 
 
-#define button 9     
-  
-#define LED 6
+#define OFF_btn 2     
+#define ON_btn 3     
+#define REC_btn 4     
 
-// Then I initialize the button state as 0 (LOW / OFF) 
+#define RLY_ONE 5    
+#define RLY_TWO 6 
+   
+#define LED_SCREEN 7    
 
-int button_state = 0;         
-int pin3OUTPUT = 0;       
+
+// Then I initialize the button states as HIGH since I'm using the 
+// internal pullup resistors and I initialize the relay states as LOW.
+
+int OFF_btn_state = HIGH;         
+int ON_btn_state = HIGH;         
+int REC_btn_state = HIGH;
+
+int RLY_ONE_state = LOW;
+int RLY_TWO_state = LOW;
+
+// Now I'll initialize the global state as OFF. 
+// Since I'll have 3 global states, I'm using 1, 2, and 3 for simplicity. 
+// 1 = OFF, 2 = ON, 3 = REC
+
+int GLOBAL_state = 1;
 
 void setup() {
 

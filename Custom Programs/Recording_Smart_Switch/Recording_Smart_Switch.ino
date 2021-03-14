@@ -55,12 +55,15 @@ void setup() {
   pinMode(RLY_ONE,OUTPUT);
   pinMode(RLY_TWO,OUTPUT);
   pinMode(LED_SCREEN,OUTPUT);
+
+// Then I output "OFF" to the LED Screen
 }
 
 
 
 // Now I'll define the loop function
 void loop() {
+  int previous_state = GLOBAL_state;
 
 // First I read the state of each button
   OFF_btn_state = digitalRead(OFF_btn);         
@@ -73,47 +76,53 @@ void loop() {
 // Is the desired state already active? 
 
 // Off button pressed
-if(
-  OFF_btn_state == LOW &&
-  ON_btn_state == HIGH &&
-  REC_btn_state == HIGH  &&
-  GLOBAL_state != 1
-  ){
-  Set_global_state (1); 
-} 
+  if(
+    OFF_btn_state == LOW &&
+    ON_btn_state == HIGH &&
+    REC_btn_state == HIGH  &&
+    GLOBAL_state != 1
+    ){
+    Set_global_state (1); 
+  } 
 
 // On button pressed
-else if (
-  OFF_btn_state == HIGH &&
-  ON_btn_state == LOW &&
-  REC_btn_state == HIGH  &&
-  GLOBAL_state != 2
-  ){
-  Set_global_state (2); 
-} 
+  else if (
+    OFF_btn_state == HIGH &&
+    ON_btn_state == LOW &&
+    REC_btn_state == HIGH  &&
+    GLOBAL_state != 2
+    ){
+    Set_global_state (2); 
+  } 
 
 // Record button pressed
-else if (
-  OFF_btn_state == HIGH &&
-  ON_btn_state == HIGH &&
-  REC_btn_state == LOW  &&
-  GLOBAL_state != 3
-  ){
-  Set_global_state (3);
-}
+  else if (
+    OFF_btn_state == HIGH &&
+    ON_btn_state == HIGH &&
+    REC_btn_state == LOW  &&
+    GLOBAL_state != 3
+    ){
+    Set_global_state (3);
+  }
 
+// Then I'll check if the state has changed based on the previous
+// if/else statement & activate the relays accordingly.
 
-// Set button_state based on state of button
-  button_state = digitalRead(button);
-
-  Serial.println(button_state);
-  delay(1000);
-
+  if( previous_state != GLOBAL_state){
   
-// if button is pressed, turn on LED
-  if(button_state == 1) {
-   digitalWrite(LED, 1); 
-  } else{
-   digitalWrite(LED, 0);  
+    if(GLOBAL_state == 1){
+      digitalWrite(RLY_ONE, LOW);
+      digitalWrite(RLY_TWO, LOW);
+    } else if (GLOBAL_state == 2){
+      digitalWrite(RLY_ONE, HIGH);
+      digitalWrite(RLY_TWO, HIGH);
+    } else if (GLOBAL_state == 3){
+      digitalWrite(RLY_ONE, HIGH);
+      digitalWrite(RLY_TWO, LOW);
     }
+
+// Update the LED Screen with new state
+  
+  }
+// End Loop
 }

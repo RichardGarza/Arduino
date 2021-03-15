@@ -1,3 +1,8 @@
+///////////////////////////////////// RECORDING STUIDIO SMART SWITCH ////////////////////////////////////////////////
+
+
+///////////////////////////////////// VARIABLE DECLARATIONS /////////////////////////////////////////////////////////
+
 // First I define the i/o pin numbers for the button and the LED 
 
 #define OFF_btn 2     
@@ -24,11 +29,14 @@ int RLY_TWO_state = LOW;
 
 
 
-// Now I'll initialize the global state as OFF. 
+// Now I'll initialize a global state variable and set it to OFF. 
 // Since I'll have 3 global states, I'm using 1, 2, and 3 for simplicity. 
 // 1 = OFF, 2 = ON, 3 = REC
 
 int GLOBAL_state = 1;
+
+
+///////////////////////////////////// CUSTOM FUNCTION DECLARATION ///////////////////////////////////////////////////
 
 // and I'll define the set_global_state function
 int Set_global_state (int x){
@@ -36,6 +44,7 @@ int Set_global_state (int x){
 }
 
 
+///////////////////////////////////// SETUP FUNCTION ////////////////////////////////////////////////////////////////
 
 // Now I'll define the setup function
 void setup() {
@@ -59,9 +68,9 @@ void setup() {
 // Then I output "OFF" to the LED Screen
 }
 
+///////////////////////////////////// LOOP FUNCTION /////////////////////////////////////////////////////////////////
 
-
-// Now I'll define the loop function
+// Now I'll implement the logic for what I want the program to do. 
 void loop() {
   int previous_state = GLOBAL_state;
 
@@ -113,15 +122,21 @@ void loop() {
     if(GLOBAL_state == 1){
       digitalWrite(RLY_ONE, LOW);
       digitalWrite(RLY_TWO, LOW);
+      Serial.print("OFF ");
     } else if (GLOBAL_state == 2){
       digitalWrite(RLY_ONE, HIGH);
       digitalWrite(RLY_TWO, HIGH);
+      Serial.print("ON");
     } else if (GLOBAL_state == 3){
       digitalWrite(RLY_ONE, HIGH);
       digitalWrite(RLY_TWO, LOW);
+      Serial.print("RECORDING");
     }
 
 // Update the LED Screen with new state
+// Make 'Recording' Blink on screen when active.
+
+
   
   }
 // End Loop

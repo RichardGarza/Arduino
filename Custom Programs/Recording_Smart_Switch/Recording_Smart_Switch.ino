@@ -14,8 +14,6 @@
    
 #define LED_SCREEN 7    
 
-
-
 // Then I define the initial button states as HIGH since I'm using the 
 // internal pullup resistors and I initialize the relay states as LOW 
 // so they are off when the program starts.
@@ -24,11 +22,6 @@ int OFF_btn_state = HIGH;
 int ON_btn_state = HIGH;         
 int REC_btn_state = HIGH;
 
-int RLY_ONE_state = LOW;
-int RLY_TWO_state = LOW;
-
-
-
 // Now I'll initialize a global state variable and set it to OFF. 
 // Since I'll have 3 global states, I'm using 1, 2, and 3 for simplicity. 
 // 1 = OFF, 2 = ON, 3 = REC
@@ -36,12 +29,17 @@ int RLY_TWO_state = LOW;
 int GLOBAL_state = 1;
 
 
-///////////////////////////////////// CUSTOM FUNCTION DECLARATION ///////////////////////////////////////////////////
+///////////////////////////////////// CUSTOM FUNCTION DECLARATIONS ///////////////////////////////////////////////////
 
-// and I'll define the set_global_state function
+// I'll define the set_global_state function
 int Set_global_state (int x){
   GLOBAL_state = x;
 }
+
+// and I'll define the reset function (just in case)
+void(* resetFunc) (void) = 0; 
+
+ 
 
 
 ///////////////////////////////////// SETUP FUNCTION ////////////////////////////////////////////////////////////////
@@ -54,6 +52,7 @@ void setup() {
 
 // Init serial connection
   Serial.begin(9600);
+  Serial.println("Serial Connection Established...");
 
 // Then Set the pinMode for inputs
   pinMode(OFF_btn, INPUT_PULLUP);
@@ -64,6 +63,10 @@ void setup() {
   pinMode(RLY_ONE,OUTPUT);
   pinMode(RLY_TWO,OUTPUT);
   pinMode(LED_SCREEN,OUTPUT);
+
+// Make sure relays are off
+  digitalWrite(RLY_ONE, LOW);
+  digitalWrite(RLY_TWO, LOW);
 
 // Then I output "OFF" to the LED Screen
 }
@@ -112,7 +115,16 @@ void loop() {
     GLOBAL_state != 3
     ){
     Set_global_state (3);
-  }
+  } 
+  
+// All three buttons pressed, reset device.
+  else if (
+    OFF_btn_state == LOW &&
+    ON_btn_state == LOW &&
+    REC_btn_state == LOW  &&
+    ){
+      resetFunc();
+    }
 
 // Then I'll check if the state has changed based on the previous
 // if/else statement & activate the relays accordingly.
@@ -122,15 +134,15 @@ void loop() {
     if(GLOBAL_state == 1){
       digitalWrite(RLY_ONE, LOW);
       digitalWrite(RLY_TWO, LOW);
-      Serial.print("OFF ");
+      Serial.println("OFF ");
     } else if (GLOBAL_state == 2){
       digitalWrite(RLY_ONE, HIGH);
       digitalWrite(RLY_TWO, HIGH);
-      Serial.print("ON");
+      Serial.println("ON");
     } else if (GLOBAL_state == 3){
       digitalWrite(RLY_ONE, HIGH);
       digitalWrite(RLY_TWO, LOW);
-      Serial.print("RECORDING");
+      Serial.println("RECORDING");
     }
 
 // Update the LED Screen with new state

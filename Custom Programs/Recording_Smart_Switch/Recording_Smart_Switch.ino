@@ -3,7 +3,7 @@
 
 ///////////////////////////////////// VARIABLE DECLARATIONS /////////////////////////////////////////////////////////
 
-// First I define the i/o pin numbers for the button and the LED 
+// First I define the i/o pin numbers for the button and the LCD Screen 
 
 #define OFF_btn 2     
 #define ON_btn 3     
@@ -12,7 +12,7 @@
 #define RLY_ONE 5    
 #define RLY_TWO 6 
    
-#define LED_SCREEN 7    
+#define LCD_SCREEN 7    
 
 // Then I define the initial button states as HIGH since I'm using the 
 // internal pullup resistors and I initialize the relay states as LOW 
@@ -62,13 +62,13 @@ void setup() {
 // Then Set the pinMode for outputs
   pinMode(RLY_ONE,OUTPUT);
   pinMode(RLY_TWO,OUTPUT);
-  pinMode(LED_SCREEN,OUTPUT);
+  pinMode(LCD_SCREEN,OUTPUT);
 
 // Make sure relays are off
   digitalWrite(RLY_ONE, LOW);
   digitalWrite(RLY_TWO, LOW);
 
-// Then I output "OFF" to the LED Screen
+// Then I output "OFF" to the LCD Screen
 }
 
 ///////////////////////////////////// LOOP FUNCTION /////////////////////////////////////////////////////////////////
@@ -145,7 +145,7 @@ void loop() {
       Serial.println("RECORDING");
     }
 
-// Update the LED Screen with new state
+// Update the LCD Screen with new state
 // Make 'Recording' Blink on screen when active.
 
 

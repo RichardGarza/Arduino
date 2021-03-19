@@ -1,0 +1,5 @@
+{
+    "port": "COM3",
+    "board": "arduino:avr:uno",
+    "sketch": "Custom Programs\\3_Button_Test\\3_Button_Test.ino"
+}

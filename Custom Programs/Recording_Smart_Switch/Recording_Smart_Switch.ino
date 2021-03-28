@@ -6,6 +6,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <arduino-timer.h>
 
 ///////////////////////////////////// VARIABLE DECLARATIONS /////////////////////////////////////////////////////////
 
@@ -44,6 +45,9 @@ int REC_btn_state = HIGH;
 
 int GLOBAL_state = 1;
 
+// Then I'll instantiate a timer for blinking the Rec state
+auto timer = timer_create_default();
+
 
 ///////////////////////////////////// CUSTOM FUNCTION DECLARATIONS ///////////////////////////////////////////////////
 
@@ -67,28 +71,39 @@ void setupScreenToPrint(void) {
 void printON(void) {
   display.println(F("On"));
   display.display();
-  delay(2000);
 }
 
 // This will print 'Off' to the display
 void printOFF(void) {
   display.println(F("Off"));
   display.display();
-  delay(2000);
 }
 
 // This will print 'Rec' to the display
 void printREC(void) {
   display.println(F("Rec"));
   display.display();
-  delay(1500);
 }
 
 // This will clear the display
 void printNothing(void) {
   display.println(F(""));
   display.display();
-  delay(1500);
+}
+
+// I'll use this state to toggle the 'Rec' screen flashing
+int REC_state = 1;
+
+bool toggle_rec(void *) {
+  setupScreenToPrint();
+  if(REC_state == 0){
+    REC_state = 1;
+    printREC();
+  } else {
+    REC_state = 0;
+    printNothing();
+  }
+//  return true; // keep timer active? true
 }
 
 
@@ -136,6 +151,7 @@ void setup() {
 
 // Now I'll implement the logic for what I want the program to do.
 void loop() {
+  timer.tick(); 
   int previous_state = GLOBAL_state;
 
   // First I read the state of each button & store the result in a variable
@@ -191,6 +207,7 @@ void loop() {
   // if/else statement & activate the relays accordingly.
 
   if ( previous_state != GLOBAL_state) {
+    timer.cancel();
 
     if (GLOBAL_state == 1) {
       digitalWrite(RLY_ONE, HIGH);
@@ -199,6 +216,7 @@ void loop() {
       printOFF();
   
     } else if (GLOBAL_state == 2) {
+      
       digitalWrite(RLY_ONE, LOW);
       digitalWrite(RLY_TWO, LOW);
       setupScreenToPrint();
@@ -209,18 +227,11 @@ void loop() {
       digitalWrite(RLY_TWO, HIGH);
       setupScreenToPrint();
       printREC();
+
+      // Make 'Recording' Blink on screen when active.
+      timer.every(1000, toggle_rec);
+      
     }
-
-    // Update the LCD Screen with new state
-    // Make 'Recording' Blink on screen when active.
-  }
-
-    // While in recording state, blink the 'Rec' on screen
-  if( previous_state == 3 && GLOBAL_state == 3) {
-    setupScreenToPrint();
-    printNothing();
-    setupScreenToPrint();
-    printREC();
   }
   // End Loop
 }

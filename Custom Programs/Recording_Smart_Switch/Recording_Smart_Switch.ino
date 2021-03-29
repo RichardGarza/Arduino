@@ -1,6 +1,16 @@
 ///////////////////////////////////// RECORDING STUIDIO SMART SWITCH ////////////////////////////////////////////////
+// Hey! My name is Richard and this is the program for my studio smart switch. This switch will control two outlets 
+// independently using 3 possible states: On, Off, and Recording. In the Off state, both outlets will be off. In the 
+// On state, both outlets will be on. In the Recording state, one outlet will be on and one will be off. There will 
+// be a screen connected which will display the current state and 3 hardware buttons will be used to activate their 
+// respective states. 
+
+// Feel free to check out the hardware here: https://drive.google.com/drive/folders/1OrVUQHJO3h5ACMl2yvR-MDkTQtR7tal_?usp=sharing
+
 
 ///////////////////////////////////// LIBRARY DECLARATIONS /////////////////////////////////////////////////////////
+
+// These are the libraries I need for the OLED screen and a timer library to make it blink.
 
 #include <SPI.h>
 #include <Wire.h>
@@ -10,7 +20,7 @@
 
 ///////////////////////////////////// VARIABLE DECLARATIONS /////////////////////////////////////////////////////////
 
-// First I define the i/o pin numbers for the button and the LCD Screen
+// First I define the i/o pin numbers for the buttons and the Relays
 
 #define OFF_btn 2
 #define ON_btn 3
@@ -19,21 +29,24 @@
 #define RLY_ONE 5
 #define RLY_TWO 6
 
+// Then I define the screen size 
+
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
 
-// Declaration for SSD1306 display connected using software SPI (default case):
+// Then I define the pins for my SSD1306 display connected using software SPI
 #define OLED_MOSI   9
 #define OLED_CLK   10
 #define OLED_DC    11
 #define OLED_CS    12
 #define OLED_RESET 13
+
+// Then I instantiate a display
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT,
                          OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
 
 // Then I define the initial button states as HIGH since I'm using the
-// internal pullup resistors and I initialize the relay states as LOW
-// so they are off when the program starts.
+// internal pullup resistors
 
 int OFF_btn_state = HIGH;
 int ON_btn_state = HIGH;
@@ -56,7 +69,7 @@ int Set_global_state (int x) {
   GLOBAL_state = x;
 }
 
-// and I'll define the reset function (just in case)
+// and I'll define the Arduino reset function (just in case)
 void(* resetFunc) (void) = 0;
 
 // then I define the function to prepare screen for printing
@@ -66,6 +79,8 @@ void setupScreenToPrint(void) {
   display.setTextColor(SSD1306_WHITE);        // Draw white text
   display.setCursor(50, 6);            // Start at top-left corner
 }
+
+// and define functions for printing 3 states & clearing screen
 
 // This will print 'On' to the display
 void printON(void) {
@@ -91,8 +106,17 @@ void printNothing(void) {
   display.display();
 }
 
-// I'll use this state to toggle the 'Rec' screen flashing
+// Here I'm creating the logic for blinking the 'Rec' status on the OLED.
+// First I create a 'Recording state' which represents whether or not 'Rec'
+// is currently on the screen. 
+
+// 1 = Screen is displaying 'Rec' 
+// 0 = Screen is blank.
+
 int REC_state = 1;
+
+// Then I define a function that checks the state, changes it, and toggles
+// between displaying 'Rec' and printing nothing on the screen. 
 
 bool toggle_rec(void *) {
   setupScreenToPrint();
@@ -103,7 +127,7 @@ bool toggle_rec(void *) {
     REC_state = 0;
     printNothing();
   }
-//  return true; // keep timer active? true
+  return true; // keep timer active? true
 }
 
 
@@ -111,7 +135,6 @@ bool toggle_rec(void *) {
 
 // Now I'll define the setup function
 void setup() {
-  Serial.begin(9600);
   
   // Then Set the pinMode for inputs
   pinMode(OFF_btn, INPUT_PULLUP);
@@ -128,11 +151,6 @@ void setup() {
 
   // Then I rotate screen 180 degrees & clear display
   display.setRotation(2);
-  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-  if (!display.begin(SSD1306_SWITCHCAPVCC)) {
-    Serial.println(F("SSD1306 allocation failed"));
-    for (;;); // Don't proceed, loop forever
-  }
 
   // Show initial display buffer contents on the screen --
   // the library initializes this with an Adafruit splash screen.
@@ -149,12 +167,25 @@ void setup() {
 
 ///////////////////////////////////// LOOP FUNCTION /////////////////////////////////////////////////////////////////
 
-// Now I'll implement the logic for what I want the program to do.
+// Now I'll implement the logic for what I want the program to do. Basically the program works like this: 
+// I check the current state and store it in the previous_state variable. Then I check the state of all the buttons 
+// and store them in variables. Then, depending on which buttons were pressed, I change the global state. Then, I 
+// check if the global state is different from the previous_state (indicating a change), and if it is, I implement 
+// the new state by signalling the relays and displaying the new state. 
+
+// I made the program work this way so that this loop can run indefinitely without doing anything so long as the state isn't changed,
+// meaning if the state is 'Off' and you press the 'Off' button, nothing will happen & if no buttons are pressed, nothing will happen. 
+
 void loop() {
+  // So here's what all that looks like. 
+  
+  // This keeps my timer running
   timer.tick(); 
+
+  // This is where I record the current state. 
   int previous_state = GLOBAL_state;
 
-  // First I read the state of each button & store the result in a variable
+  // Then I read the state of each button & store the result in a variable
   OFF_btn_state = digitalRead(OFF_btn);
   ON_btn_state = digitalRead(ON_btn);
   REC_btn_state = digitalRead(REC_btn);
@@ -203,13 +234,20 @@ void loop() {
     resetFunc();
   }
 
-  // Then I'll check if the state has changed based on the previous
-  // if/else statement & activate the relays accordingly.
-
+  // Then I check if the state has changed
+  
   if ( previous_state != GLOBAL_state) {
-    timer.cancel();
 
+  // If it has, I check if the previous_state was 3 (Rec) and cancel the timer if so. 
+    
+    if (previous_state == 3) {
+      timer.cancel();
+    }
+
+  // Then I set the relays based on the new state. 
+  
     if (GLOBAL_state == 1) {
+      
       digitalWrite(RLY_ONE, HIGH);
       digitalWrite(RLY_TWO, HIGH);
       setupScreenToPrint();
@@ -228,9 +266,8 @@ void loop() {
       setupScreenToPrint();
       printREC();
 
-      // Make 'Recording' Blink on screen when active.
+      // and here's where I make 'Recording' Blink every second when active.
       timer.every(1000, toggle_rec);
-      
     }
   }
   // End Loop
